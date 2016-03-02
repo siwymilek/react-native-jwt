@@ -87,10 +87,15 @@ jwt.decode = function jwt_decode(token, key, noVerify, algorithm) {
  * @return {String} token
  * @api public
  */
-jwt.encode = function jwt_encode(payload, key, algorithm, options) {
+jwt.encode = function jwt_encode(payload, key, options, algorithm) {
   // Check key
   if (!key) {
     throw new Error('Require key');
+  }
+
+  if(options.expiresIn != undefined) {
+    payload.iat = Date.now();
+    payload.exp = Date.now()+options.expiresIn;
   }
 
   // Check algorithm, default is HS256
@@ -135,8 +140,8 @@ function verify(input, key, method, type, signature) {
 
   else if(type == "sign") {
     return crypto.createVerify(method)
-      .update(input)
-      .verify(key, base64urlUnescape(signature), 'base64');
+        .update(input)
+        .verify(key, base64urlUnescape(signature), 'base64');
   }
 
   else {
@@ -171,7 +176,7 @@ function base64urlUnescape(str) {
 }
 
 function base64urlEncode(str) {
-  return base64.encode(str);
+  return base64urlEscape(base64.encode(str));
 }
 
 function base64urlEscape(str) {
